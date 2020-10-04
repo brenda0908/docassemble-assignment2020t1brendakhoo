@@ -1,0 +1,221 @@
+# ASSIGNMENT 1
+# You will be implementing the Legal Aid Bureau's interview to determine
+# whether an applicant is eligible for legal aid. 
+# The total score that can be awarded for this assignment is 20.
+# The reference interview is found here:
+# https://guided.page/interview?i=docassemble.playground3%3Alab.yml#page1
+# Resources are found here:
+# https://lab.mlaw.gov.sg/legal-services/taking-the-means-test/
+# https://sso.agc.gov.sg/SL/LAAA1995-RG1#Sc1-
+---
+# MODIFY THIS BLOCK
+# Please fill in the relevant information.
+metadata:
+  title: |
+    Legal Aid Bureau Eligibility Interview - Means Test 
+  short title: |
+    Means Test
+  description: |
+    This interview is to assess whether you are able to receive assistance under the Legal Aid Bureau, based on your household income from all the members, including you.
+  authors:
+    - name: Brenda Khoo
+      organization: COR-LAW-2215 Digital Intelligence for Lawyers
+  revision_date: 2020-09-16
+---
+# DO NOT MODIFY THIS BLOCK. SCORE: 5
+# Implement a check_nric function in a module file called validation.py.
+# It should check for (1) correct format and (2) that it is a valid NRIC.
+# Use a regular expression to test for the correct format.
+# Implement the checksum algorithm to determine whether the NRIC is valid.
+# The NRIC checksum algorithm can be found on:
+# http://www.ngiam.net/NRIC/ or Wikipedia
+# Test your function using data from: https://samliew.com/nric-generator
+modules:
+  .validation
+---
+# DO NOT MODIFY THIS BLOCK
+# This is your objects block.
+# Individual is used for the applicant.
+# DAList is used for household_incomes.
+objects:
+  applicant: Individual
+  household_members: DAList.using(object_type=Individual, there_is_another=False)
+---
+# MODIFY THIS BLOCK (BUT DO NOT MOVE IT). SCORE: 5
+# Use this block to control the interview logic.
+# Include this line somewhere in your code: 
+#   household_members.append(applicant)
+# This line of code adds the applicant to the household_members DAList.
+# This ensures that the applicant appears in the household_members.table.
+mandatory: True
+code: |
+  nric
+  household_members.append(applicant)
+  applicant_name.first
+  applicant_name.last
+  applicant_birthdate
+  if not applicant_residence:
+    applicant_savings
+  else:
+    if applicant_residencevalue > 13000:
+      ineligible_screen  
+    else:
+      if not applicant_onlyprop:
+        ineligible_screen
+      else:
+        applicant_savings
+  if not applicant_savings:
+    applicant_income
+  else: 
+    applicant_age
+  if applicant_age > 21 and applicant_age < 60 and applicant_savingsvalue > 10000:
+    ineligible_screen
+  else: 
+    applicant_income
+  if applicant_age >= 60 and applicant_savingsvalue > 40000:
+    ineligible_screen
+  else:
+    applicant_income
+  if not applicant_savings:
+    ineligible_screen
+  else:
+    applicant_savingsvalue
+---
+question: |
+  Please provide your NRIC: 
+fields: 
+  - no label: nric
+    validate: validation_nric
+---
+question: |
+  Applicant's basic information:
+fields: 
+  - First Name: applicant_name.first
+  - Last Name: applicant_name.last
+  - Birthdate: applicant_birthdate
+  - NRIC: applicant_nric
+  - 'Do you own a place of residence?': applicant_residence
+    datatype: yesnoradio
+  - 'How much is your place of residence?': applicant_residencevalue
+    datatype: currency
+    min: 0
+  - 'Is your place of residence the only property you own?': applicant_onlyprop
+    datatype: yesnoradio
+  - 'Do you have savings and non-CPF investments?': applicant_savings
+    datatype: yesnoradio
+  - 'How old are you?': applicant_age
+    datatype: integer
+    min: 21
+  - 'How much income have you obtained over the past year?': applicant_income
+    datatype: number
+    min: 0 
+---
+question: |
+  Savings and non-CPF investments
+subquestion: |
+  Please calculate the value of the following assets that you have in your name 
+  * Bank account savings
+  * Overall value of shares in your Central Depository account
+  * Other savings
+  Other savings include
+  * Fixed deposit accounts at financial institutions
+  * Shares, bonds and exchange traded funds apart from those in your CDP account
+  * Any other financial or investment products with a cash value
+fields:
+  - 'no label': applicant_savingsvalue
+    datatype: currency
+    min: 0
+---
+# DO NOT MODIFY THIS BLOCK OR MOVE IT
+mandatory: True
+code: |
+  if household_members.there_are_any:
+    review_household_members
+---
+# MODIFY THIS BLOCK (BUT DO NOT MOVE IT). SCORE: 5
+# Use this block to write code that calculates the average PCHI
+mandatory: True
+code: |
+  household_incomes.target_number
+  total_gross_income
+  if household_members.grossincome / ( household_members.number * 12 ) > 950:
+    ineligible_screen
+  else: 
+    review_household_members
+  household_members[i].name.first
+  household_members[i].name.last
+  household_members[i].birthdate
+  household_members[i].income
+---
+question: |
+  Enter the number of members in your household, including yourself
+fields:
+  - 'no label': household_incomes.target_number
+    datatype: integer
+    min: 1
+    default: 1
+---
+question: |
+  Enter the total gross income of all household members including yourself in the past 12 months
+subquestion: |
+  Gross income refers to the gross wages or salaries before deduction of CPF contributions and personal income tax. It comprises
+  * Basic wages
+  * Overtime pay
+  * Commissions
+  * Tips
+  * Other allowances
+  * Bonuses
+  For self-employed persons, gross income refers to profits from their business, trade or profession before the deduction of income tax. This means total receipts less business expenses incurred.
+fields:
+  - 'Total gross income of household': total_gross_income
+    datatype: currency
+    min: 0
+---
+# DO NOT MODIFY THIS BLOCK
+table: household_members.table
+rows: household_members
+columns: 
+  - Name: row_item
+  - Birthdate: row_item.birthdate
+  - Income: row_item.income
+edit:
+  - name.first
+---
+# DO NOT MODIFY THIS BLOCK
+question: | 
+  Please add all other household members.
+subquestion: |
+  A household member is any person residing with you and related by:
+  
+  1. blood
+  2. marriage; or
+  3. adoption.
+  
+  Press continue when you have added all household members.
+  
+  ${household_members.table}
+
+  ${household_members.add_action() }
+  
+field: review_household_members
+---
+# DO NOT MODIFY THIS BLOCK
+question: |
+  Information about your ${ordinal(i)} household member:
+fields:
+  - First Name: household_members[i].name.first
+  - Last Name: household_members[i].name.last
+  - Birthdate: household_members[i].birthdate
+    datatype: date
+  - "This person's total income in past 12 months": household_members[i].income
+    datatype: currency
+    min: 0
+    default: 0
+---
+question: |
+  Sorry but your case does not qualify for Legal Aid Bureau assistance.
+event: ineligible_screen
+
+# IMPLEMENT ALL YOUR QUESTION BLOCKS.
+# Implement all the question blocks correctly. Score 3
+# Improving the usability / user experience. Score 2

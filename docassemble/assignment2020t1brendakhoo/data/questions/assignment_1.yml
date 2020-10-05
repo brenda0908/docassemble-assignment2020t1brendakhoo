@@ -51,35 +51,35 @@ mandatory: True
 code: |
   nric
   household_members.append(applicant)
-  applicant_name.first
-  applicant_name.last
-  applicant_birthdate
-  if not applicant_residence:
-    applicant_savings
+  applicant.name.first
+  applicant.name.last
+  applicant.birthdate
+  if not applicant.residence:
+    applicant.savings
   else:
-    if applicant_residencevalue > 13000:
+    if applicant.residencevalue > 13000:
       ineligible_screen  
     else:
-      if not applicant_onlyprop:
+      if not applicant.onlyprop:
         ineligible_screen
       else:
-        applicant_savings
-  if not applicant_savings:
-    applicant_income
+        applicant.savings
+  if not applicant.savings:
+    applicant.income
   else: 
-    applicant_age
-  if applicant_age > 21 and applicant_age < 60 and applicant_savingsvalue > 10000:
+    applicant.age
+  if applicant.age > 21 and applicant.age < 60 and applicant.savingsvalue > 10000:
     ineligible_screen
   else: 
-    applicant_income
-  if applicant_age >= 60 and applicant_savingsvalue > 40000:
+    applicant.income
+  if applicant.age >= 60 and applicant.savingsvalue > 40000:
     ineligible_screen
   else:
-    applicant_income
-  if not applicant_savings:
+    applicant.income
+  if not applicant.savings:
     ineligible_screen
   else:
-    applicant_savingsvalue
+    applicant.savingsvalue
 ---
 question: |
   Please provide your NRIC: 
@@ -90,23 +90,24 @@ fields:
 question: |
   Applicant's basic information:
 fields: 
-  - First Name: applicant_name.first
-  - Last Name: applicant_name.last
-  - Birthdate: applicant_birthdate
-  - NRIC: applicant_nric
-  - 'Do you own a place of residence?': applicant_residence
+  - First Name: applicant.name.first
+  - Last Name: applicant.name.last
+  - Birthdate: applicant.birthdate
+    datatype: date
+  - NRIC: applicant.nric
+  - 'Do you own a place of residence?': applicant.residence
     datatype: yesnoradio
-  - 'How much is your place of residence?': applicant_residencevalue
+  - 'How much is your place of residence?': applicant.residencevalue
     datatype: currency
     min: 0
-  - 'Is your place of residence the only property you own?': applicant_onlyprop
+  - 'Is your place of residence the only property you own?': applicant.onlyprop
     datatype: yesnoradio
-  - 'Do you have savings and non-CPF investments?': applicant_savings
+  - 'Do you have savings and non-CPF investments?': applicant.savings
     datatype: yesnoradio
-  - 'How old are you?': applicant_age
+  - 'How old are you?': applicant.age
     datatype: integer
     min: 21
-  - 'How much income have you obtained over the past year?': applicant_income
+  - 'How much income have you obtained over the past year?': applicant.income
     datatype: number
     min: 0 
 ---
@@ -122,7 +123,7 @@ subquestion: |
   * Shares, bonds and exchange traded funds apart from those in your CDP account
   * Any other financial or investment products with a cash value
 fields:
-  - 'no label': applicant_savingsvalue
+  - 'no label': applicant.savingsvalue
     datatype: currency
     min: 0
 ---
@@ -137,8 +138,9 @@ code: |
 mandatory: True
 code: |
   household_incomes.target_number
+  household_incomes.gather()
   total_gross_income
-  if household_members.grossincome / ( household_members.number * 12 ) > 950:
+  if total_gross_income / ( household_members.target_number * 12 ) > 950:
     ineligible_screen
   else: 
     review_household_members
@@ -156,15 +158,24 @@ fields:
     default: 1
 ---
 question: |
+  Information about your $[ordinal(i)] household member:
+fields:
+  - 'Total household income in past 12 months': household_incomes[i]
+    datatype: currency
+    min: 0
+---
+question: |
   Enter the total gross income of all household members including yourself in the past 12 months
 subquestion: |
   Gross income refers to the gross wages or salaries before deduction of CPF contributions and personal income tax. It comprises
-  * Basic wages
-  * Overtime pay
-  * Commissions
-  * Tips
-  * Other allowances
+  
+  * Basic wages;
+  * Overtime pay;
+  * Commissions;
+  * Tips;
+  * Other allowances; and
   * Bonuses
+  
   For self-employed persons, gross income refers to profits from their business, trade or profession before the deduction of income tax. This means total receipts less business expenses incurred.
 fields:
   - 'Total gross income of household': total_gross_income

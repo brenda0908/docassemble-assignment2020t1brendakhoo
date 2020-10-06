@@ -1,6 +1,6 @@
 # ASSIGNMENT 1
 # You will be implementing the Legal Aid Bureau's interview to determine
-# whether an applicant is eligible for legal aid. 
+# whether an applicant is eligible for legal aid.
 # The total score that can be awarded for this assignment is 20.
 # The reference interview is found here:
 # https://guided.page/interview?i=docassemble.playground3%3Alab.yml#page1
@@ -12,7 +12,7 @@
 # Please fill in the relevant information.
 metadata:
   title: |
-    Legal Aid Bureau Eligibility Interview - Means Test 
+    Legal Aid Bureau Eligibility Interview - Means Test
   short title: |
     Means Test
   description: |
@@ -43,7 +43,7 @@ objects:
 ---
 # MODIFY THIS BLOCK (BUT DO NOT MOVE IT). SCORE: 5
 # Use this block to control the interview logic.
-# Include this line somewhere in your code: 
+# Include this line somewhere in your code:
 #   household_members.append(applicant)
 # This line of code adds the applicant to the household_members DAList.
 # This ensures that the applicant appears in the household_members.table.
@@ -58,7 +58,7 @@ code: |
     applicant.savings
   else:
     if applicant.residencevalue > 13000:
-      ineligible_screen  
+      ineligible_screen
     else:
       if not applicant.onlyprop:
         ineligible_screen
@@ -66,11 +66,11 @@ code: |
         applicant.savings
   if not applicant.savings:
     applicant.income
-  else: 
+  else:
     applicant.age
   if applicant.age > 21 and applicant.age < 60 and applicant.savingsvalue > 10000:
     ineligible_screen
-  else: 
+  else:
     applicant.income
   if applicant.age >= 60 and applicant.savingsvalue > 40000:
     ineligible_screen
@@ -82,48 +82,55 @@ code: |
     applicant.savingsvalue
 ---
 question: |
-  Please provide your NRIC: 
-fields: 
+  Please provide your NRIC:
+fields:
   - no label: nric
     validate: validation_nric
 ---
 question: |
   Applicant's basic information:
-fields: 
+fields:
   - First Name: applicant.name.first
   - Last Name: applicant.name.last
   - Birthdate: applicant.birthdate
     datatype: date
-  - NRIC: applicant.nric
+---
+question: |
+  Applicant's place of residence
+fields:
   - 'Do you own a place of residence?': applicant.residence
     datatype: yesnoradio
-  - 'How much is your place of residence?': applicant.residencevalue
+  - 'What is the Annual Value of your place of residence?': applicant.residencevalue
     datatype: currency
     min: 0
   - 'Is your place of residence the only property you own?': applicant.onlyprop
     datatype: yesnoradio
+---
+question: |
+  Savings and non-CPF investments
+subquestion: |
+  Please calculate the value of the following assets that you have in your name
+  1. Bank account savings;
+  2. Overall value of shares in your Central Depository account; and
+  3. Other savings
+  Other savings include
+  1. Fixed deposit accounts at financial institutions;
+  2. Shares, bonds and exchange traded funds apart from those in your CDP account; and
+  3. Any other financial or investment products with a cash value
+fields:
   - 'Do you have savings and non-CPF investments?': applicant.savings
     datatype: yesnoradio
   - 'How old are you?': applicant.age
     datatype: integer
     min: 21
-  - 'How much income have you obtained over the past year?': applicant.income
-    datatype: number
-    min: 0 
+  - 'How much savings do you have?': applicant.savingsvalue
+    datatype: currency
+    min: 0
 ---
 question: |
-  Savings and non-CPF investments
-subquestion: |
-  Please calculate the value of the following assets that you have in your name 
-  * Bank account savings
-  * Overall value of shares in your Central Depository account
-  * Other savings
-  Other savings include
-  * Fixed deposit accounts at financial institutions
-  * Shares, bonds and exchange traded funds apart from those in your CDP account
-  * Any other financial or investment products with a cash value
+  Amount of income that you have obtained over the past year
 fields:
-  - 'no label': applicant.savingsvalue
+  - 'no label': applicant.income
     datatype: currency
     min: 0
 ---
@@ -137,12 +144,10 @@ code: |
 # Use this block to write code that calculates the average PCHI
 mandatory: True
 code: |
-  household_incomes.target_number
   household_incomes.gather()
-  total_gross_income
-  if total_gross_income / ( household_members.target_number * 12 ) > 950:
+  if total_gross_income/(household_members.target_number * 12) > 950:
     ineligible_screen
-  else: 
+  else:
     review_household_members
   household_members[i].name.first
   household_members[i].name.last
@@ -160,7 +165,7 @@ fields:
 question: |
   Information about your $[ordinal(i)] household member:
 fields:
-  - 'Total household income in past 12 months': household_incomes[i]
+  - 'Total household income in past 12 months': household_incomes.value
     datatype: currency
     min: 0
 ---
@@ -168,14 +173,14 @@ question: |
   Enter the total gross income of all household members including yourself in the past 12 months
 subquestion: |
   Gross income refers to the gross wages or salaries before deduction of CPF contributions and personal income tax. It comprises
-  
+
   * Basic wages;
   * Overtime pay;
   * Commissions;
   * Tips;
   * Other allowances; and
   * Bonuses
-  
+
   For self-employed persons, gross income refers to profits from their business, trade or profession before the deduction of income tax. This means total receipts less business expenses incurred.
 fields:
   - 'Total gross income of household': total_gross_income
@@ -185,7 +190,7 @@ fields:
 # DO NOT MODIFY THIS BLOCK
 table: household_members.table
 rows: household_members
-columns: 
+columns:
   - Name: row_item
   - Birthdate: row_item.birthdate
   - Income: row_item.income
@@ -193,21 +198,21 @@ edit:
   - name.first
 ---
 # DO NOT MODIFY THIS BLOCK
-question: | 
+question: |
   Please add all other household members.
 subquestion: |
   A household member is any person residing with you and related by:
-  
+
   1. blood
   2. marriage; or
   3. adoption.
-  
+
   Press continue when you have added all household members.
-  
+
   ${household_members.table}
 
   ${household_members.add_action() }
-  
+
 field: review_household_members
 ---
 # DO NOT MODIFY THIS BLOCK

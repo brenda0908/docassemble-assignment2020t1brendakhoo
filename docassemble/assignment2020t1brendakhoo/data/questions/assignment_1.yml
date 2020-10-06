@@ -94,36 +94,43 @@ fields:
   - Last Name: applicant.name.last
   - Birthdate: applicant.birthdate
     datatype: date
-  - NRIC: applicant.nric
+---
+question: |
+  Applicant's place of residence
+fields:  
   - 'Do you own a place of residence?': applicant.residence
     datatype: yesnoradio
-  - 'How much is your place of residence?': applicant.residencevalue
+  - 'What is the Annual Value of your place of residence?': applicant.residencevalue
     datatype: currency
     min: 0
   - 'Is your place of residence the only property you own?': applicant.onlyprop
     datatype: yesnoradio
-  - 'Do you have savings and non-CPF investments?': applicant.savings
-    datatype: yesnoradio
-  - 'How old are you?': applicant.age
-    datatype: integer
-    min: 21
-  - 'How much income have you obtained over the past year?': applicant.income
-    datatype: number
-    min: 0 
 ---
 question: |
   Savings and non-CPF investments
 subquestion: |
   Please calculate the value of the following assets that you have in your name 
-  * Bank account savings
-  * Overall value of shares in your Central Depository account
-  * Other savings
+  1. Bank account savings; 
+  2. Overall value of shares in your Central Depository account; and
+  3. Other savings
   Other savings include
-  * Fixed deposit accounts at financial institutions
-  * Shares, bonds and exchange traded funds apart from those in your CDP account
-  * Any other financial or investment products with a cash value
+  1. Fixed deposit accounts at financial institutions;
+  2. Shares, bonds and exchange traded funds apart from those in your CDP account; and
+  3. Any other financial or investment products with a cash value
+fields: 
+  - 'Do you have savings and non-CPF investments?': applicant.savings
+    datatype: yesnoradio
+  - 'How old are you?': applicant.age
+    datatype: integer
+    min: 21
+  - 'How much savings do you have?': applicant.savingsvalue
+    datatype: currency
+    min: 0
+---
+question: |
+  Amount of income that you have obtained over the past year
 fields:
-  - 'no label': applicant.savingsvalue
+  - 'no label': applicant.income
     datatype: currency
     min: 0
 ---
@@ -137,10 +144,8 @@ code: |
 # Use this block to write code that calculates the average PCHI
 mandatory: True
 code: |
-  household_incomes.target_number
-  household_incomes.gather()
-  total_gross_income
-  if total_gross_income / ( household_members.target_number * 12 ) > 950:
+  household_incomes.gather()  
+  if total_gross_income/(household_members.target_number * 12) > 950:
     ineligible_screen
   else: 
     review_household_members
@@ -160,7 +165,7 @@ fields:
 question: |
   Information about your $[ordinal(i)] household member:
 fields:
-  - 'Total household income in past 12 months': household_incomes[i]
+  - 'Total household income in past 12 months': household_incomes.value
     datatype: currency
     min: 0
 ---
